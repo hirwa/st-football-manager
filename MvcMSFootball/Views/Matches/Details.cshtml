@@ -1,0 +1,40 @@
+﻿@model MvcMSFootball.Models.Match
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<fieldset>
+    <legend>Match</legend>
+
+    <div class="display-label"><strong>Home Team Name</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.HomeTeamName)
+    </div>
+
+    <div class="display-label"><strong>Away Team Name</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.AwayTeamName)
+    </div>
+
+    <div class="display-label"><strong>Date</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Date)
+    </div>
+
+    <div class="display-label"><strong>HomeGoals</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.HomeGoals)
+    </div>
+
+    <div class="display-label"><strong>AwayGoals</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.AwayGoals)
+    </div>
+</fieldset>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id=Model.ID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

@@ -1,0 +1,45 @@
+﻿@model MvcMSFootball.Models.Player
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<fieldset>
+    <legend>Player</legend>
+
+    <div class="display-label"><strong>Name</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Name)
+    </div>
+
+    <div class="display-label"><strong>Age</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Age)
+    </div>
+
+    <div class="display-label"><strong>Comments</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Comments)
+    </div>
+
+    <div class="display-label"><strong>Team</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Team.Name)
+    </div>
+
+    <div class="display-label"><strong>Goals</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Goals)
+    </div>
+
+    <div class="display-label"><strong>Rating</strong></div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Rating)
+    </div>
+</fieldset>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id=Model.ID }) |
+    @Html.ActionLink("Back to List", "IndexList")
+</p>

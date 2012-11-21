@@ -1,0 +1,90 @@
+﻿@model MvcMSFootball.Models.Team
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Team</h2>
+
+<table>
+    <tr>
+        <th>
+            <strong>Name</strong>
+        </th>
+        <th>
+            <strong>Won</strong>
+        </th>
+        <th>
+            <strong>Draw</strong>
+        </th>
+        <th>
+            <strong>Lost</strong>
+        </th>
+
+    </tr>
+
+    <tr>
+        <td>
+            @Html.DisplayFor(model => model.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(model => model.Won)
+        </td>
+        <td>
+            @Html.DisplayFor(model => model.Draw)
+        </td>
+        <td>
+            @Html.DisplayFor(model => model.Lost)
+        </td>
+    </tr>
+
+
+</table>
+<h3>Players</h3>
+<table>
+    <tr>
+        <th>
+            Name
+        </th>
+        <th>
+            Age
+        </th>
+        <th>
+            Comments
+        </th>
+        <th>
+            Rating
+        </th>
+        <th>
+            Goals
+        </th>
+    </tr>
+    @foreach (var item in Model.Players) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Age)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Comments)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Rating)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Goals)
+        </td>
+    </tr>
+}
+
+
+
+</table>
+
+
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id=Model.ID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

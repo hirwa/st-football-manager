@@ -1,0 +1,10 @@
+﻿
+@Html.TextBox("", ViewData.TemplateInfo.FormattedModelValue, new { data_datepicker = true }) (mm/dd/aaaa)
+
+<!-- cada vez que se use un editorFor para un DateTime se utilizará este elemento(o template).
+
+el mismo es un textBox que tiene un atributo dentro que es: data-datepicker=true.
+
+* el data_datepicker se permite por c# ponerlo asi, y MVC framework lo convierte luego a data-datepicker cuando se transforma a HTML
+* el primer parámetro "" indica el nombre, que al estar en blanco es porque se setea luego cuando se usa
+----->

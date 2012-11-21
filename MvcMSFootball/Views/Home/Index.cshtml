@@ -1,0 +1,12 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<h2>@ViewBag.Message</h2>
+What do you want to do ?
+<b>
+<li>@Html.ActionLink("Teams", "", "Teams")</li>
+<li>@Html.ActionLink("Players", "IndexList", "Players")</li>
+<li>@Html.ActionLink("Matches", "", "Matches")</li>
+</b>
+
