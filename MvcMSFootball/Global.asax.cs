@@ -34,7 +34,7 @@ namespace MvcMSFootball
         protected void Application_Start()
         {
 
-            Database.SetInitializer<FootballManagerDBContext>(new FootballManagerInitializer());
+            //Database.SetInitializer<FootballManagerDBContext>(new FootballManagerInitializer());
             
             AreaRegistration.RegisterAllAreas();
             RegisterGlobalFilters(GlobalFilters.Filters);

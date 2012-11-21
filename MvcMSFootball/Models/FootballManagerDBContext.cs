@@ -1,4 +1,5 @@
 ﻿using System.Data.Entity;
+using MvcMSFootball.Configuration;
 
 namespace MvcMSFootball.Models
 {
@@ -10,5 +11,10 @@ namespace MvcMSFootball.Models
         public DbSet<Team> Teams { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Match> Matches { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<FootballManagerDBContext, Config>());
+        }
     }
 }
