@@ -537,3 +537,29 @@ namespace MvcMSFootball.Configuration
 ```
 
 And the DB Initializer is now included in the FootballManagerDBContext file.
+
+Future Upgrades
+---------------
+
+*Remove viewBag usage
+*Remove 'using' for context disposal ( not really necessary ). In that case the context is a private attribute : 
+```
+public class MatchesController : Controller
+    {
+        private FootballManagerDBContext _db = new FootballManagerDBContext();
+```
+*Use int as parameter ( implicit conversion ) :
+```
+public ActionResult Create(Match match, string teamListHome, string teamListAway)
+{
+  var teamHomeId = Convert.ToInt32(teamListHome);
+  var awayHomeId = Convert.ToInt32(teamListAway);
+  ...
+```
+changes to 
+```
+public ActionResult Create(Match match, int teamListHome, int teamListAway)
+{
+  ...
+```
+*Remove dispose method from controllers unless the private atribute dbcontext is used. 
