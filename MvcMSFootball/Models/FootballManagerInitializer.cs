@@ -19,7 +19,7 @@ namespace MvcMSFootball.Models
             var teams = new List<Team> {  
   
                  new Team { Name = "MakingSense Team A",   
-                             Won = 1,   
+                             Won = 2,   
                              Draw = 1,  
                              Lost = 2  
                              },  
