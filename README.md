@@ -104,150 +104,16 @@ namespace MvcMSFootball.Models
         public DbSet<Team> Teams { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Match> Matches { get; set; }
-    }
-}
-```
 
-This is how you tell the **EF** how to communicate with the DB.
-
-Everytime the model changes the database should be updated. For this i used the Initializer approach that drops and creates the database everytime the model changes. This approach is useful when developing, not in production (you'll loose all the data in the database).
-
-Initializer code :
-
-```
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-
-namespace MvcMSFootball.Models
-{
-    /// <summary>
-    /// Database Initializer class
-    /// </summary>
-    public class FootballManagerInitializer : DropCreateDatabaseIfModelChanges<FootballManagerDBContext>
-    {
-        /// <summary>
-        /// Seeds the database with data
-        /// </summary>
-        protected override void Seed(FootballManagerDBContext context)
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            var teams = new List<Team> {  
-  
-                 new Team { Name = "MakingSense Team A",   
-                             Won = 1,   
-                             Draw = 1,  
-                             Lost = 2  
-                             },  
-
-                 new Team { Name = "MakingSense Team B",   
-                          Won = 2,   
-                          Draw = 1,  
-                          Lost = 1  
-                          },   
-             };
-
-            teams.ForEach(d => context.Teams.Add(d));
-            context.SaveChanges();
-
-            var players = new List<Player> {  
-  
-                new Player{
-                Name = "Cosme Fulanito",
-                Age = 27,
-                Comments = "He has magic in his feet",
-                Rating = 8,
-                TeamId = 1,
-                Team = context.Teams.Single( s => s.ID == 1),
-                Goals = 2
-                },  
-
-                new Player{
-                Name = "Matias Farulla",
-                Age = 25,
-                Comments = "Rough player",
-                Rating = 7,
-                TeamId = 2,   
-                Team = context.Teams.Single( s => s.ID == 2),
-                Goals = 0
-                },
-
-                new Player{
-                Name = "Eustaquio Gomez",
-                Age = 33,
-                Comments = "Close to retire",
-                Rating = 5,
-                TeamId = 1,
-                Team = context.Teams.Single( s => s.ID == 1),
-                Goals = 1
-                },  
-
-                new Player{
-                Name = "Siloquio Hernandez",
-                Age = 19,
-                Comments = "Very Fast Winger",
-                Rating = 8,
-                TeamId = 2,   
-                Team = context.Teams.Single( s => s.ID == 2),
-                Goals = 3
-                },
-
-                new Player{
-                Name = "Herminio Bunga",
-                Age = 30,
-                Comments = "Experienced guy",
-                Rating = 7,
-                TeamId = 1,
-                Team = context.Teams.Single( s => s.ID == 1),
-                Goals = 4
-                },  
-
-                new Player{
-                Name = "Herman Jones",
-                Age = 28,
-                Comments = "Foreign player",
-                Rating = 4,
-                TeamId = 2,   
-                Team = context.Teams.Single( s => s.ID == 2),
-                Goals = 0
-                }  
-    
-
-             };
-
-            players.ForEach(d => context.Players.Add(d));
-
-            context.SaveChanges();
-
-            var matches = new List<Match> {  
-  
-                 new Match { HomeTeamId = 1,
-                             AwayTeamId = 2,
-                             HomeGoals = 6,   
-                             AwayGoals = 4,  
-                             Date = DateTime.Parse("03/10/2012")  
-                             },  
-
-                 new Match { HomeTeamId = 2,
-                             AwayTeamId = 1,
-                             HomeGoals = 5,   
-                             AwayGoals = 5,  
-                             Date = DateTime.Parse("07/10/2012")  
-                             }  
-             };
-
-            matches.ForEach(d => context.Matches.Add(d));
-            context.SaveChanges();
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<FootballManagerDBContext, Config>());
         }
     }
 }
 ```
 
-This initializer sets up some basic data for testing purposes. For this to work we have to tell the application to use it on Application_start. In the file **Global.asax.cs** i edited the Application_start method and added the following line :
-
-```
-Database.SetInitializer<FootballManagerDBContext>(new FootballManagerInitializer());
-```
+This is how you tell the **EF** how to communicate with the DB.
 
 At this point we have the model and the database initializer. We'll follow with the controllers. 
 Controllers have actions which define functionality.
@@ -644,3 +510,30 @@ The team details view was modified to show not only team information, but also t
 As for javascript i used the jQuery datePicker to select dates in the matches creation view. 
 
 Minor modifications were made to the application **css**. I changed the background color to green and added a corresponding logo in the header.
+
+**IMPORTANT**
+=============
+
+Had to change the db provider and the way i used to initialize the DB. This is because appHarbor won't let me create the DB.
+In Web.config i used the following connectionString :
+```
+<add name="FootballManagerDBContext" connectionString="Data Source=.\SQLEXPRESS;Initial Catalog=FM;Integrated Security=True;" providerName="System.Data.SqlClient" />
+```
+I removed the FootballManagerInitializer.cs file, because it's no longer useful.
+
+I created a Configuration File 
+```
+namespace MvcMSFootball.Configuration
+{
+    public class Config : DbMigrationsConfiguration<FootballManagerDBContext>
+    {
+        public Config()
+        {
+            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true;
+        }
+    }
+}
+```
+
+And the DB Initializer is now included in the FootballManagerDBContext file.
