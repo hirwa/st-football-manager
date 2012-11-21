@@ -7,7 +7,7 @@ using MvcMSFootball.Models;
 namespace MvcMSFootball.Controllers
 {
     /// <summary>
-    /// The Matches controller class
+    /// The Matches controller classs
     /// </summary>
     public class MatchesController : Controller
     {
