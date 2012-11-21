@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="St-football-manager : ASP MVC3 self-training" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>St-football-manager</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/MakingSense/st-football-manager">View on GitHub</a>
+
+          <h1 id="project_title">St-football-manager</h1>
+          <h2 id="project_tagline">ASP MVC3 self-training</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/MakingSense/st-football-manager/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/MakingSense/st-football-manager/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>st-football-manager</h1>
+
+<p>This self-training application allows the user to create, edit, list and delete players with their respective teams. It also allows match creation with their respective results and date. It allows the user to filter players and to list them by team ( using team details ). </p>
+
+<p>The objective was to learn the ASP MVC3 framework basics. Before starting this project i completed the Microsoft tutorial ( movie listing ) : <a href="http://www.asp.net/mvc/tutorials/getting-started-with-aspnet-mvc3/cs/intro-to-aspnet-mvc-3">http://www.asp.net/mvc/tutorials/getting-started-with-aspnet-mvc3/cs/intro-to-aspnet-mvc-3</a></p>
+
+<h1>Documentation</h1>
+
+<p>Microsoft ASP.NET MVC 3 (w/Razor Engine) self training.</p>
+
+<h2>Learned topics</h2>
+
+<ul>
+<li>Model
+
+<ul>
+<li>Code First Approach</li>
+<li>Annotations &amp; validations</li>
+</ul>
+</li>
+<li>View
+
+<ul>
+<li>Razor engine</li>
+<li>HTML helpers</li>
+</ul>
+</li>
+<li>Controller
+
+<ul>
+<li>Action results, selectors &amp; filters</li>
+</ul>
+</li>
+<li>Services
+
+<ul>
+<li>LINQ</li>
+<li>ViewBag</li>
+</ul>
+</li>
+</ul><p>This self training objective was to learn the basic concepts of Microsoft's ASP.NET MVC 3 and the Razor View Engine. Also i learned about a TFS.</p>
+
+<p>This particular application lets the user create, edit, delete and list football teams, players and matches. 
+Players are assigned to teams, and matches are played by two existing teams.
+Also the user wil be able to filter players by name or team.</p>
+
+<p>First of all I created the <strong>models</strong> ...</p>
+
+<p>Example :</p>
+
+<pre><code>using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace MvcMSFootball.Models
+{
+    /// &lt;summary&gt;
+    /// Represents a Player, belongs to a Team
+    /// &lt;/summary&gt;
+    public class Player
+    {
+        [Key]
+        public int ID { get; set; }        
+
+        [Required(ErrorMessage = "You must enter the name")]
+        [DisplayName("Player Name")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "You must enter the age")]
+        [DisplayName("Player Age")]
+        public int Age { get; set; }
+
+        [Range(1, 10, ErrorMessage = "You must enter a valid player rating (1-10)")]
+        [RegularExpression("^[0-9]{1,2}$", ErrorMessage = "Invalid Number")]
+        [DisplayName("Player Rating (1-10)")]
+        public int Rating { get; set; }
+
+        [DisplayName("Comments")]
+        public string Comments { get; set; }
+
+        [DisplayName("Goals made")]
+        [RegularExpression("^[0-9]{1,9}$", ErrorMessage = "Invalid Number")]
+        public int Goals { get; set; }
+
+        [ForeignKey("Team")]
+        public int TeamId { get; set; }
+        public virtual Team Team { get; set; }
+    }
+
+}
+</code></pre>
+
+<p>...where i learned about validations using annotations provided by ASP.NET. </p>
+
+<p>The implemented classes ( Player, Match and Team ) defined the <strong>data model</strong> used by the application. This approach is known as <strong>code first</strong>, and is used by <strong>Entity Framework</strong>. It allows the developer just worry about the classes and their relationships, while <strong>EF</strong> handles the DB creation task.</p>
+
+<p>The relationship between the model classes are:</p>
+
+<ul>
+<li>A player has one team</li>
+<li>A team has a list of players</li>
+<li>A match has two teams</li>
+</ul><p>Using the <strong>virtual</strong> keyword means that <strong>EF</strong> should instantiate those objects.</p>
+
+<p>After creating the Models i created the DBContext. </p>
+
+<p>using System.Data.Entity;</p>
+
+<pre><code>namespace MvcMSFootball.Models
+{
+    /// &lt;summary&gt;
+    /// DBContext for the application
+    /// &lt;/summary&gt;
+    public class FootballManagerDBContext : DbContext
+    {
+        public DbSet&lt;Team&gt; Teams { get; set; }
+        public DbSet&lt;Player&gt; Players { get; set; }
+        public DbSet&lt;Match&gt; Matches { get; set; }
+    }
+}
+</code></pre>
+
+<p>This is how you tell the <strong>EF</strong> how to communicate with the DB.</p>
+
+<p>Everytime the model changes the database should be updated. For this i used the Initializer approach that drops and creates the database everytime the model changes. This approach is useful when developing, not in production (you'll loose all the data in the database).</p>
+
+<p>Initializer code :</p>
+
+<pre><code>using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+
+namespace MvcMSFootball.Models
+{
+    /// &lt;summary&gt;
+    /// Database Initializer class
+    /// &lt;/summary&gt;
+    public class FootballManagerInitializer : DropCreateDatabaseIfModelChanges&lt;FootballManagerDBContext&gt;
+    {
+        /// &lt;summary&gt;
+        /// Seeds the database with data
+        /// &lt;/summary&gt;
+        protected override void Seed(FootballManagerDBContext context)
+        {
+            var teams = new List&lt;Team&gt; {  
+
+                 new Team { Name = "MakingSense Team A",   
+                             Won = 1,   
+                             Draw = 1,  
+                             Lost = 2  
+                             },  
+
+                 new Team { Name = "MakingSense Team B",   
+                          Won = 2,   
+                          Draw = 1,  
+                          Lost = 1  
+                          },   
+             };
+
+            teams.ForEach(d =&gt; context.Teams.Add(d));
+            context.SaveChanges();
+
+            var players = new List&lt;Player&gt; {  
+
+                new Player{
+                Name = "Cosme Fulanito",
+                Age = 27,
+                Comments = "He has magic in his feet",
+                Rating = 8,
+                TeamId = 1,
+                Team = context.Teams.Single( s =&gt; s.ID == 1),
+                Goals = 2
+                },  
+
+                new Player{
+                Name = "Matias Farulla",
+                Age = 25,
+                Comments = "Rough player",
+                Rating = 7,
+                TeamId = 2,   
+                Team = context.Teams.Single( s =&gt; s.ID == 2),
+                Goals = 0
+                },
+
+                new Player{
+                Name = "Eustaquio Gomez",
+                Age = 33,
+                Comments = "Close to retire",
+                Rating = 5,
+                TeamId = 1,
+                Team = context.Teams.Single( s =&gt; s.ID == 1),
+                Goals = 1
+                },  
+
+                new Player{
+                Name = "Siloquio Hernandez",
+                Age = 19,
+                Comments = "Very Fast Winger",
+                Rating = 8,
+                TeamId = 2,   
+                Team = context.Teams.Single( s =&gt; s.ID == 2),
+                Goals = 3
+                },
+
+                new Player{
+                Name = "Herminio Bunga",
+                Age = 30,
+                Comments = "Experienced guy",
+                Rating = 7,
+                TeamId = 1,
+                Team = context.Teams.Single( s =&gt; s.ID == 1),
+                Goals = 4
+                },  
+
+                new Player{
+                Name = "Herman Jones",
+                Age = 28,
+                Comments = "Foreign player",
+                Rating = 4,
+                TeamId = 2,   
+                Team = context.Teams.Single( s =&gt; s.ID == 2),
+                Goals = 0
+                }  
+
+
+             };
+
+            players.ForEach(d =&gt; context.Players.Add(d));
+
+            context.SaveChanges();
+
+            var matches = new List&lt;Match&gt; {  
+
+                 new Match { HomeTeamId = 1,
+                             AwayTeamId = 2,
+                             HomeGoals = 6,   
+                             AwayGoals = 4,  
+                             Date = DateTime.Parse("03/10/2012")  
+                             },  
+
+                 new Match { HomeTeamId = 2,
+                             AwayTeamId = 1,
+                             HomeGoals = 5,   
+                             AwayGoals = 5,  
+                             Date = DateTime.Parse("07/10/2012")  
+                             }  
+             };
+
+            matches.ForEach(d =&gt; context.Matches.Add(d));
+            context.SaveChanges();
+        }
+    }
+}
+</code></pre>
+
+<p>This initializer sets up some basic data for testing purposes. For this to work we have to tell the application to use it on Application_start. In the file <strong>Global.asax.cs</strong> i edited the Application_start method and added the following line :</p>
+
+<pre><code>Database.SetInitializer&lt;FootballManagerDBContext&gt;(new FootballManagerInitializer());
+</code></pre>
+
+<p>At this point we have the model and the database initializer. We'll follow with the controllers. 
+Controllers have actions which define functionality.</p>
+
+<p>I created a controller for every model in the application ( Player, Team and Match ).</p>
+
+<ul>
+<li>The PlayerController allows the user to list players, filter them by name and team, detail them, create them and delete them.</li>
+<li>The TeamController allows the user to list teams, detail them, create them and delete them.</li>
+<li>The MatchController allows the user to list matches, create them and detail them.</li>
+</ul><pre><code>using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Linq;
+using System.Web.Mvc;
+using MvcMSFootball.Models;
+
+namespace MvcMSFootball.Controllers
+{
+    /// &lt;summary&gt;
+    /// The Players controller
+    /// &lt;/summary&gt;
+    public class PlayersController : Controller
+    {
+
+        /// &lt;summary&gt;
+        /// Generates a list for the team select filter. If the Player is about to be created, the list populates itself with no order. If 
+        /// the player is about to be edited then the select has the actual team already selected
+        /// &lt;/summary&gt;
+        /// &lt;param name="idTeam"&gt;The ID of the team to be edited.&lt;/param&gt;
+        private void GenerateTeamSelect(int idTeam = 0)
+        {
+            using (var context = new FootballManagerDBContext())
+            {
+                var teams = context.Teams.ToList();
+                var teamSelectListItem = new List&lt;SelectListItem&gt;();
+                if (idTeam == 0)
+                {
+                    teamSelectListItem = teams.Select(team =&gt; new SelectListItem() { Text = team.Name, Value = "" + team.ID }).ToList();
+                }
+                else
+                {
+                    // If idTeam is passed as an argument it means that the user is editing a player. 
+                    // In that case the dropdown should select by default the player's team.
+
+                    var teamShorterList = new List&lt;Team&gt;();
+                    // We add the player's team firt
+                    Team team = teams.Single(selectedTeam =&gt; selectedTeam.ID == idTeam);
+                    teamShorterList.Add(team);
+
+                    // Then we populate the list with the rest of the teams
+                    teamShorterList.AddRange(teams.Where(teamListItem =&gt; teamListItem.ID != idTeam).ToList());
+
+                    teamSelectListItem = teamShorterList.Select(selectedTeam =&gt; new SelectListItem() { Text = selectedTeam.Name, Value = "" + selectedTeam.ID }).ToList();
+                }
+                ViewBag.teamList = teamSelectListItem;
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// Filters the list of players
+        /// &lt;/summary&gt;
+        /// &lt;param name="teamList"&gt;The team selected id&lt;/param&gt;
+        /// &lt;param name="searchString"&gt;The string to use as filter&lt;/param&gt;
+        /// &lt;returns&gt;The view&lt;/returns&gt;
+        public ActionResult IndexList(String teamList, String searchString)
+        {
+
+            GenerateTeamSelect();
+
+            List&lt;Player&gt; playersList;
+
+            using (var context = new FootballManagerDBContext())
+            {
+
+                var players = from p in context.Players.Include(p =&gt; p.Team) select p;
+
+                if (!String.IsNullOrEmpty(teamList))
+                {
+                    var teamId = Int32.Parse(teamList);
+                    players = players.Where(player =&gt; player.TeamId == teamId);
+                }
+                if (!String.IsNullOrEmpty(searchString))
+                {
+                    players = players.Where(player =&gt; player.Name.Contains(searchString));
+                }
+
+                playersList = players.OrderByDescending(player =&gt; player.Rating).ToList();
+
+                return View(playersList);
+            }
+
+        }
+
+        //
+        // GET: /Players/Details/5
+        /// &lt;summary&gt;
+        /// Details view controller method for showing player details
+        /// &lt;/summary&gt;
+        /// &lt;param name="id"&gt;The player id&lt;/param&gt;
+        /// &lt;returns&gt;The Details view&lt;/returns&gt;
+        public ViewResult Details(int id)
+        {
+
+            Player player;
+            using (var context = new FootballManagerDBContext())
+            {
+                player = context.Players.Find(id);
+            }
+            return View(player);
+        }
+
+        //
+        // GET: /Players/Create
+        /// &lt;summary&gt;
+        /// Create view controller method for creating a player
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;The Create view&lt;/returns&gt;
+        public ActionResult Create()
+        {
+            GenerateTeamSelect();
+            return View();
+        }
+
+        //
+        // POST: /Players/Create
+        /// &lt;summary&gt;
+        /// Creates the player
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;If it's valid, redirects to indexList&lt;/returns&gt;
+        [HttpPost]
+        public ActionResult Create(Player player, String teamList)
+        {
+            var teamId = Convert.ToInt32(teamList);
+            if (ModelState.IsValid)
+            {
+                using (var context = new FootballManagerDBContext())
+                {
+                    Team team = context.Teams.Single(selectedTeam =&gt; selectedTeam.ID == teamId);
+                    player.Team = team;
+                    player.TeamId = team.ID;
+                    context.Players.Add(player);
+                    context.SaveChanges();
+                }
+                return RedirectToAction("IndexList");
+            }
+
+            return View(player);
+        }
+
+        //
+        // GET: /Players/Edit/5
+        /// &lt;summary&gt;
+        /// Edit view controller method for editing a player
+        /// &lt;/summary&gt;
+        /// &lt;param name="id"&gt;The player id&lt;/param&gt;
+        /// &lt;returns&gt;The Edit view&lt;/returns&gt;
+        public ActionResult Edit(int id)
+        {
+            Player player;
+            using (var context = new FootballManagerDBContext())
+            {
+                player = context.Players.Find(id);
+            }
+            GenerateTeamSelect(player.TeamId);
+            return View(player);
+        }
+
+        //
+        // POST: /Players/Edit/5
+        /// &lt;summary&gt;
+        /// Saves the edited player data
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;If it's valid, redirects to indexList&lt;/returns&gt;
+        [HttpPost]
+        public ActionResult Edit(Player player, String teamList)
+        {
+            var teamId = Convert.ToInt32(teamList);
+            if (ModelState.IsValid)
+            {
+                using (var context = new FootballManagerDBContext())
+                {
+                    Team team = context.Teams.Single(selectedTeam =&gt; selectedTeam.ID == teamId);
+                    player.TeamId = teamId;
+                    player.Team = team;
+                    context.Entry(player).State = EntityState.Modified;
+                    context.SaveChanges();
+                }
+                return RedirectToAction("IndexList");
+            }
+            return View(player);
+        }
+
+        //
+        // GET: /Players/Delete/5
+        /// &lt;summary&gt;
+        /// Delete view controller method for deleting a player
+        /// &lt;/summary&gt;
+        /// &lt;param name="id"&gt;The player id&lt;/param&gt;
+        /// &lt;returns&gt;The Delete view&lt;/returns&gt;
+        public ActionResult Delete(int id)
+        {
+            Player player;
+            using (var context = new FootballManagerDBContext())
+            {
+                player =  context.Players.Find(id);
+            }
+            return View(player);
+        }
+
+        //
+        // POST: /Players/Delete/5
+        /// &lt;summary&gt;
+        /// Deletes the player
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;If it's valid, redirects to indexList&lt;/returns&gt;
+        [HttpPost, ActionName("Delete")]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            Player player;
+            using (var context = new FootballManagerDBContext())
+            {
+                player = context.Players.Find(id);
+                context.Players.Remove(player);
+                context.SaveChanges();
+            }
+            return RedirectToAction("IndexList");
+        }
+
+        /// &lt;summary&gt;
+        /// Method in charge of disposing the db context
+        /// &lt;/summary&gt;
+        /// &lt;param name="disposing"&gt;indicates if the context should be disposed&lt;/param&gt;
+        protected override void Dispose(bool disposing)
+        {
+            using (var context = new FootballManagerDBContext())
+            {
+                context.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}
+</code></pre>
+
+<p>Using controllers i learned about ViewBags, how to pass model data to their respective views, how to query Containers (such as List) using LINQ, how to work with dbContext to query the database and about ActionSelectors, like httpPost.</p>
+
+<p>The views are generated automatically according to the model. Each view represents an action (create, edit, list, delete).</p>
+
+<p>Here is the createPlayer view :</p>
+
+<pre><code>@model MvcMSFootball.Models.Player
+
+@{
+    ViewBag.Title = "Create";
+}
+
+&lt;h2&gt;Create&lt;/h2&gt;
+
+&lt;script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"&gt;&lt;/script&gt;
+&lt;script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"&gt;&lt;/script&gt;
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+    &lt;fieldset&gt;
+        &lt;legend&gt;Player&lt;/legend&gt;
+
+        &lt;div class="editor-label"&gt;
+            @Html.LabelFor(model =&gt; model.Name)
+        &lt;/div&gt;
+        &lt;div class="editor-field"&gt;
+            @Html.EditorFor(model =&gt; model.Name)
+            @Html.ValidationMessageFor(model =&gt; model.Name)
+        &lt;/div&gt;
+
+        &lt;div class="editor-label"&gt;
+            @Html.LabelFor(model =&gt; model.Age)
+        &lt;/div&gt;
+        &lt;div class="editor-field"&gt;
+            @Html.EditorFor(model =&gt; model.Age)
+            @Html.ValidationMessageFor(model =&gt; model.Age)
+        &lt;/div&gt;
+        &lt;div class="editor-label"&gt;
+           Team name
+        &lt;/div&gt;
+        &lt;div class="editor-field"&gt;
+         &lt;!------------ Dropdown team selection --------- ---&gt;
+            @Html.DropDownList("teamList", "-teams-")
+            @Html.ValidationMessageFor(model =&gt; model.Team.ID)
+        &lt;/div&gt;
+        &lt;div class="editor-label"&gt;
+            @Html.LabelFor(model =&gt; model.Comments)
+        &lt;/div&gt;
+        &lt;div class="editor-field"&gt;
+            @Html.EditorFor(model =&gt; model.Comments)
+            @Html.ValidationMessageFor(model =&gt; model.Comments)
+        &lt;/div&gt;
+        &lt;div class="editor-label"&gt;
+            @Html.LabelFor(model =&gt; model.Rating)
+        &lt;/div&gt;
+        &lt;div class="editor-field"&gt;
+            @Html.EditorFor(model =&gt; model.Rating)
+            @Html.ValidationMessageFor(model =&gt; model.Rating)
+        &lt;/div&gt;
+        &lt;div class="editor-label"&gt;
+            @Html.LabelFor(model =&gt; model.Goals)
+        &lt;/div&gt;
+        &lt;div class="editor-field"&gt;
+            @Html.EditorFor(model =&gt; model.Goals)
+            @Html.ValidationMessageFor(model =&gt; model.Goals)
+        &lt;/div&gt;
+
+        &lt;p&gt;
+            &lt;input type="submit" value="Create" /&gt;
+        &lt;/p&gt;
+    &lt;/fieldset&gt;
+}
+
+&lt;div&gt;
+    @Html.ActionLink("Back to List", "IndexList")
+&lt;/div&gt;
+</code></pre>
+
+<p>Working with views i learned about Razor Engine, the templates it generates, and how to develop html components using razor helpers.</p>
+
+<p>As you can see in the createPlayer view i used a dropDownSelection populated with the teams created before. That dropDownSelector is populated in the PlayerController method <strong>GenerateTeamSelect</strong>.</p>
+
+<pre><code>        /// &lt;summary&gt;
+        /// Generates a list for the team select filter. If the Player is about to be created, the list populates itself with no order. If 
+        /// the player is about to be edited then the select has the actual team already selected
+        /// &lt;/summary&gt;
+        /// &lt;param name="idTeam"&gt;The ID of the team to be edited.&lt;/param&gt;
+        private void GenerateTeamSelect(int idTeam = 0)
+        {
+            using (var context = new FootballManagerDBContext())
+            {
+                var teams = context.Teams.ToList();
+                var teamSelectListItem = new List&lt;SelectListItem&gt;();
+                if (idTeam == 0)
+                {
+                    teamSelectListItem = teams.Select(team =&gt; new SelectListItem() { Text = team.Name, Value = "" + team.ID }).ToList();
+                }
+                else
+                {
+                    // If idTeam is passed as an argument it means that the user is editing a player. 
+                    // In that case the dropdown should select by default the player's team.
+
+                    var teamShorterList = new List&lt;Team&gt;();
+                    // We add the player's team firt
+                    Team team = teams.Single(selectedTeam =&gt; selectedTeam.ID == idTeam);
+                    teamShorterList.Add(team);
+
+                    // Then we populate the list with the rest of the teams
+                    teamShorterList.AddRange(teams.Where(teamListItem =&gt; teamListItem.ID != idTeam).ToList());
+
+                    teamSelectListItem = teamShorterList.Select(selectedTeam =&gt; new SelectListItem() { Text = selectedTeam.Name, Value = "" + selectedTeam.ID }).ToList();
+                }
+                ViewBag.teamList = teamSelectListItem;
+            }
+        }
+
+</code></pre>
+
+<p>This method populates the dropDownSelector with all the teams created for the create player action, and does the same for the edit player action but putting the player's team first ( so you don't have to select it again if you want to edit some other player's data like age or rating ).</p>
+
+<p>This method is called before returning the views in the controllers actions :</p>
+
+<pre><code>        //
+        // GET: /Players/Edit/5
+        /// &lt;summary&gt;
+        /// Edit view controller method for editing a player
+        /// &lt;/summary&gt;
+        /// &lt;param name="id"&gt;The player id&lt;/param&gt;
+        /// &lt;returns&gt;The Edit view&lt;/returns&gt;
+        public ActionResult Edit(int id)
+        {
+            Player player;
+            using (var context = new FootballManagerDBContext())
+            {
+                player = context.Players.Find(id);
+            }
+            GenerateTeamSelect(player.TeamId);
+            return View(player);
+        }
+</code></pre>
+
+<p>The team details view was modified to show not only team information, but also to display the players included in that team. </p>
+
+<p>As for javascript i used the jQuery datePicker to select dates in the matches creation view. </p>
+
+<p>Minor modifications were made to the application <strong>css</strong>. I changed the background color to green and added a corresponding logo in the header.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">St-football-manager maintained by <a href="https://github.com/MakingSense">MakingSense</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
