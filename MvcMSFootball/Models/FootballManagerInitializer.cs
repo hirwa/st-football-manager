@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using MvcMSFootball.Configuration;
 
 namespace MvcMSFootball.Models
 {
     /// <summary>
     /// Database Initializer class
     /// </summary>
-    public class FootballManagerInitializer : DropCreateDatabaseIfModelChanges<FootballManagerDBContext>
+    public class FootballManagerInitializer : MigrateDatabaseToLatestVersion<FootballManagerDBContext, Config>
     {
         /// <summary>
         /// Seeds the database with data
